@@ -16,6 +16,7 @@ import { tokenByAddress } from '@/misc/tokens'
 import { TokenWallet } from '@/misc/token-wallet'
 import { useWallet } from '@/stores/WalletService'
 import { AmountInput } from '@/components/common/AmountInput'
+import { truncateDecimals } from '@/hooks/useField'
 
 type Props = {
     id: number;
@@ -56,7 +57,7 @@ export function CommandInputElement({ id, command }: Props): JSX.Element {
             // @ts-ignore
             setMinGas(parseInt(r.data.minGas, 10))
             // @ts-ignore
-            setAmount(formattedTokenAmount(r.data.minAmount, _token?.decimals))
+            setAmount(truncateDecimals(formattedTokenAmount(r.data.minAmount, _token?.decimals), 9))
         })
     }, [command])
     return (

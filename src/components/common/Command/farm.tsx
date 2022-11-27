@@ -19,7 +19,7 @@ const amountRepr = (kind: AmountExtendedKind | undefined, amount: string): strin
         case AmountExtendedKind.PERCENT:
             return `${parseInt(amount, 10) / 1000}%`
         case AmountExtendedKind.REMAINING:
-            return 'All'
+            return 'Remaining'
         case AmountExtendedKind.VALUE:
             return amount
         default:

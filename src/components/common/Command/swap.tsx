@@ -19,7 +19,7 @@ const amountRepr = (kind: AmountExtendedKind | undefined, amount: string, decima
         case AmountExtendedKind.PERCENT:
             return `${parseInt(amount, 10) / 1000}%`
         case AmountExtendedKind.REMAINING:
-            return 'All'
+            return 'Remaining'
         case AmountExtendedKind.VALUE:
             return formattedAmount(amount, decimals)
         default:
@@ -58,7 +58,7 @@ export function CommandSwapElement({ id, command }: Props): JSX.Element {
     return (
         <Box
             width="210px"
-            height="100px"
+            height="130px"
             pad="xsmall"
             key={id}
             id={`command_${id}`}
@@ -84,7 +84,6 @@ export function CommandSwapElement({ id, command }: Props): JSX.Element {
                 </Box>
             </Box>
             <Box
-                direction="row"
                 justify="between"
                 align="center"
                 fill
