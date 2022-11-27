@@ -1,0 +1,11 @@
+body {
+    margin: 0;
+}
+
+a {
+    color: #1cd6ce;
+}
+
+a, a:visited, a:hover, a:active {
+    color: #1cd6ce;
+}
