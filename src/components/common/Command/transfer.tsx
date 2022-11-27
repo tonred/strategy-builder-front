@@ -1,4 +1,4 @@
-import { Box } from 'grommet'
+import { Box, Button } from 'grommet'
 import * as React from 'react'
 import { useEffect, useState } from 'react'
 import { Send } from 'grommet-icons'
@@ -13,7 +13,7 @@ type Props = {
     command: Command;
 }
 const staticRpc = useStaticRpc()
-const amountRepr = (kind: AmountExtendedKind|undefined, amount: string): string => {
+const amountRepr = (kind: AmountExtendedKind | undefined, amount: string): string => {
     switch (kind) {
         case AmountExtendedKind.PERCENT:
             return `${parseInt(amount, 10) / 1000}%`
@@ -25,11 +25,29 @@ const amountRepr = (kind: AmountExtendedKind|undefined, amount: string): string 
             return ''
     }
 }
-const recipientRepr = (kind?: AddressExtendedKind, value?: string): string => {
+const recipientRepr = (
+    recipientIsStrategy: boolean,
+    kind?: AddressExtendedKind,
+    value?: string,
+): string | JSX.Element => {
     switch (kind) {
         case AddressExtendedKind.OWNER:
             return 'Owner'
         case AddressExtendedKind.VALUE:
+            if (recipientIsStrategy) {
+                return (
+                    <Button href={`/strategy/${value}`}>
+                        <Box align="center">
+                            <Box>
+                                Strategy
+                            </Box>
+                            <Box>
+                                {sliceAddress(value)}
+                            </Box>
+                        </Box>
+                    </Button>
+                )
+            }
             return sliceAddress(value)
         case AddressExtendedKind.SENDER:
             return 'Sender'
@@ -46,6 +64,8 @@ export function CommandTransferElement({ id, command }: Props): JSX.Element {
     const [amount, setAmount] = useState<string>('')
     const [recipientKind, setRecipientKind] = useState<AddressExtendedKind | undefined>()
     const [recipient, setRecipient] = useState<Address | undefined>()
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [isStrategy, setIsStrategy] = useState(false)
     useEffect(() => {
         staticRpc.unpackFromCell({
             allowPartial: false,
@@ -71,7 +91,13 @@ export function CommandTransferElement({ id, command }: Props): JSX.Element {
             setAmount(data.amount.value)
             setAmountKind(parseInt(data.amount.kind, 10))
             setRecipient(data.recipient.value)
-            setRecipientKind(parseInt(data.recipient.kind, 10))
+            const _recipientKind = parseInt(data.recipient.kind, 10)
+            setRecipientKind(_recipientKind)
+            if (_recipientKind === AddressExtendedKind.VALUE) {
+                staticRpc.getFullContractState({ address: data.recipient.value }).then(state => {
+                    setIsStrategy(state.state?.codeHash === '3c457e42660f182200f81889f5cdd44b340cb1f8c3991c1a8526762078c45861')
+                })
+            }
         })
     }, [command])
     return (
@@ -117,7 +143,7 @@ export function CommandTransferElement({ id, command }: Props): JSX.Element {
                     to
                 </small>
                 <small>
-                    {recipientRepr(recipientKind, recipient ? recipient.toString() : undefined)}
+                    {recipientRepr(isStrategy, recipientKind, recipient ? recipient.toString() : undefined)}
                 </small>
             </Box>
         </Box>

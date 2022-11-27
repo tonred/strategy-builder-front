@@ -1,7 +1,7 @@
 import { Box } from 'grommet'
 import * as React from 'react'
 import { useEffect, useState } from 'react'
-import { Transaction } from 'grommet-icons'
+import { Currency } from 'grommet-icons'
 import { Address } from 'everscale-inpage-provider'
 
 import { AddressExtendedKind, AmountExtendedKind, Command } from '@/types'
@@ -98,7 +98,7 @@ export function CommandFarmElement({ id, command }: Props): JSX.Element {
                 flex="grow"
             >
                 <Box direction="row" gap="xxsmall">
-                    <Transaction />
+                    <Currency />
                     Farm
                 </Box>
                 <Box>

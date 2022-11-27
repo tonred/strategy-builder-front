@@ -4,12 +4,6 @@ import { useNavigate } from 'react-router-dom'
 
 import { Wallet } from '@/components/layout/Wallet'
 
-
-// import { LangSwitcher } from '@/components/layout/LangSwitcher'
-
-// import Media from 'react-media'
-// import { Link } from 'react-router-dom'
-
 export function Header(): JSX.Element {
     const navigate = useNavigate()
 

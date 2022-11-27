@@ -33,15 +33,27 @@ export default function Strategy(): JSX.Element {
         for (const commandId in commands) {
             const command = commands[commandId]
             const commandElId = `command_${commandId}`
-            if (command.nextID !== 0 || command.childID !== 0) {
+            if (command.nextID !== 0) {
                 _connections.push({
                     anchor,
                     color: 'accent-1',
                     fromTarget: commandElId,
-                    id: `command_connection_${commandId}_${command.nextID + command.childID}`,
+                    id: `command_connection_${commandId}_${command.nextID}`,
                     round: false,
                     thickness: 'xsmall',
-                    toTarget: `command_${command.nextID + command.childID}`,
+                    toTarget: `command_${command.nextID}`,
+                    type,
+                })
+            }
+            if (command.childID !== 0) {
+                _connections.push({
+                    anchor,
+                    color: 'accent-1',
+                    fromTarget: commandElId,
+                    id: `command_connection_${commandId}_${command.childID}`,
+                    round: false,
+                    thickness: 'xsmall',
+                    toTarget: `command_${command.childID}`,
                     type,
                 })
             }
@@ -57,8 +69,11 @@ export default function Strategy(): JSX.Element {
             const colNext = new Set<number>()
             for (const prevCommand of col[depth]) {
                 const a: Command = commands[prevCommand]
-                if (a.nextID !== 0 || a.childID !== 0) {
-                    colNext.add(a.nextID + a.childID)
+                if (a.nextID === 0 || a.childID === 0) {
+                    if (a.nextID + a.childID > 0) colNext.add(a.nextID + a.childID)
+                }
+                else {
+                    colNext.add(a.nextID)
                 }
             }
             if (colNext.size > 0) {
@@ -95,51 +110,24 @@ export default function Strategy(): JSX.Element {
         else {
             navigate('/builder', { replace: true })
         }
-        // setLoading(true)
-        // poolStore.fetch(poolId).then(() => setLoading(false))
 
     }, [strategyAddress])
-    // return loading ? (
-    //     <Spinner size="large" />
-    // ) : (
-    //     <>
-    //         Strategy
-    //     </>
-    // )
-    //
-
 
     return loading ? (
         <Spinner size="large" />
     ) : (
-        <>
-            {/* <Heading textAlign="center"> */}
-            {/* {intl.formatMessage({ */}
-            {/*    id: 'HOME_PAGE_TITLE', */}
-            {/* })} */}
-            {/* </Heading> */}
-            <Stack interactiveChild="first">
-                <Box
-                    width={{ min: '1200px' }}
-                    responsive={false}
-                    justify="center"
-                    align="center"
-                    direction="row"
-                    gap="medium"
-                >
-                    {columns}
-                    {/* {rootEl} */}
-                    {/* <Box align="start"> */}
-                    {/*    <Gremlin id="gremlin" color="neutral-2" size="xlarge"/> */}
-                    {/* </Box> */}
-                    {/* <Box align="end" pad={{vertical: 'large'}}> */}
-                    {/*    <IceCream id="yummy" color="neutral-2" size="xlarge"/> */}
-                    {/*    <IceCream id="yummy2" color="neutral-2" size="xlarge"/> */}
-                    {/* </Box> */}
-                </Box>
-                <Diagram connections={connections} />
-            </Stack>
-            {/* <PoolPreviewList/> */}
-        </>
+        <Stack interactiveChild="first">
+            <Box
+                width={{ min: '1200px' }}
+                responsive={false}
+                justify="center"
+                align="center"
+                direction="row"
+                gap="medium"
+            >
+                {columns}
+            </Box>
+            <Diagram connections={connections} />
+        </Stack>
     )
 }
