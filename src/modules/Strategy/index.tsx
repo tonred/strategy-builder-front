@@ -12,9 +12,6 @@ import { CommandElement } from '@/components/common/Command'
 import { Command } from '@/types'
 import { isAddressValid } from '@/utils/is-address-valid'
 
-const anchor: DiagramConnectionAnchor = 'horizontal'
-const type: DiagramConnectionType = 'curved'
-
 export default function Strategy(): JSX.Element {
     const params = useParams()
     const navigate = useNavigate()
@@ -32,31 +29,6 @@ export default function Strategy(): JSX.Element {
         // eslint-disable-next-line guard-for-in
         for (const commandId in commands) {
             const command = commands[commandId]
-            const commandElId = `command_${commandId}`
-            if (command.nextID !== 0) {
-                _connections.push({
-                    anchor,
-                    color: 'accent-1',
-                    fromTarget: commandElId,
-                    id: `command_connection_${commandId}_${command.nextID}`,
-                    round: false,
-                    thickness: 'xsmall',
-                    toTarget: `command_${command.nextID}`,
-                    type,
-                })
-            }
-            if (command.childID !== 0) {
-                _connections.push({
-                    anchor,
-                    color: 'accent-1',
-                    fromTarget: commandElId,
-                    id: `command_connection_${commandId}_${command.childID}`,
-                    round: false,
-                    thickness: 'xsmall',
-                    toTarget: `command_${command.childID}`,
-                    type,
-                })
-            }
             if (command.kind === 0) {
                 roots.add(parseInt(commandId, 10))
             }
@@ -65,15 +37,61 @@ export default function Strategy(): JSX.Element {
         col.push(roots)
         let hasNext = true,
             depth = 0
+        const connection = (
+            from: number,
+            to: number,
+            anchor: DiagramConnectionAnchor = 'horizontal',
+            type: DiagramConnectionType = 'curved',
+        ):
+            any => ({
+            anchor,
+            color: 'accent-1',
+            fromTarget: `command_${from}`,
+            id: `command_connection_${from}_${to}`,
+            round: false,
+            thickness: 'xsmall',
+            toTarget: `command_${to}`,
+            type,
+        })
+        const checkHasNeededTarget = (column: Set<number>, target: number, target2?: number): boolean => {
+            for (const id of column) {
+                const a: Command = commands[id]
+                if (a.nextID === target
+                    || a.childID === target
+                    || a.nextID === target2
+                    || a.childID === target2) return true
+            }
+            return false
+        }
         while (hasNext) {
             const colNext = new Set<number>()
             for (const prevCommand of col[depth]) {
                 const a: Command = commands[prevCommand]
                 if (a.nextID === 0 || a.childID === 0) {
-                    if (a.nextID + a.childID > 0) colNext.add(a.nextID + a.childID)
+                    if (a.nextID + a.childID > 0) {
+                        colNext.add(a.nextID + a.childID)
+                        _connections.push(connection(prevCommand, a.nextID + a.childID))
+                    }
+                }
+                else if (checkHasNeededTarget(colNext, a.nextID, a.childID)) {
+                    colNext.add(a.nextID)
+                    _connections.push(connection(prevCommand, a.nextID, 'vertical'))
+                    _connections.push(connection(prevCommand, a.childID))
                 }
                 else {
-                    colNext.add(a.nextID)
+                    let used = false
+                    for (const column of col.slice(1)) {
+                        if (checkHasNeededTarget(column, a.nextID, a.childID)) {
+                            column.add(a.nextID)
+                            used = true
+                            break
+                        }
+                    }
+                    if (!used) {
+                        colNext.add(a.nextID)
+                    }
+                    _connections.push(connection(prevCommand, a.nextID, 'vertical'))
+                    _connections.push(connection(prevCommand, a.childID))
                 }
             }
             if (colNext.size > 0) {
@@ -91,7 +109,7 @@ export default function Strategy(): JSX.Element {
             })
             return (
                 // eslint-disable-next-line react/no-array-index-key
-                <Box key={i} pad="medium" gap="small">
+                <Box key={i} pad="medium" gap="medium">
                     {rows}
                 </Box>
             )

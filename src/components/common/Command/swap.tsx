@@ -14,14 +14,14 @@ type Props = {
     command: Command;
 }
 const staticRpc = useStaticRpc()
-const amountRepr = (kind: AmountExtendedKind | undefined, amount: string): string => {
+const amountRepr = (kind: AmountExtendedKind | undefined, amount: string, decimals?: number): string => {
     switch (kind) {
         case AmountExtendedKind.PERCENT:
             return `${parseInt(amount, 10) / 1000}%`
         case AmountExtendedKind.REMAINING:
             return 'All'
         case AmountExtendedKind.VALUE:
-            return amount
+            return formattedAmount(amount, decimals)
         default:
             return ''
     }
@@ -92,7 +92,7 @@ export function CommandSwapElement({ id, command }: Props): JSX.Element {
                 alignContent="center"
             >
                 <b>
-                    {amountRepr(amountKind, formattedAmount(amount, token?.decimals))}
+                    {amountRepr(amountKind, amount, token?.decimals)}
                 </b>
                 <small>
                     to
