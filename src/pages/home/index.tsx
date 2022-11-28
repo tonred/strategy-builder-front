@@ -7,8 +7,6 @@ export default function Page(): JSX.Element {
     return (
         <Main pad="large" align="center" gap="medium">
             <Heading>DeFi Strategy Builder</Heading>
-            <Button label="Build your own strategy" href="/builder" />
-            <Paragraph>Or try our strategies for examples</Paragraph>
             <Button href="/strategy/0:2ddef82f0bd07ea5013c35f3fde096e3580cba2d9c157d1d241e5725345e654b">
                 Swap WEVER to USDT
             </Button>
@@ -23,6 +21,15 @@ export default function Page(): JSX.Element {
             </Button>
             <Button href="/strategy/0:25b53ba5ebc425afabff4c5d9dd0772c5a03b838d8d364ab1c25bf57a5fd8d25">
                 Fill WEVER/BRIDGE pool
+            </Button>
+            <Paragraph><b>Or build your own strategy</b></Paragraph>
+            <Button
+                href="https://github.com/tonred/StrategyBuilder/tree/master/tools/strategy"
+            >
+                 Python
+            </Button>
+            <Button href="/builder">
+                UI(Limited demo)
             </Button>
         </Main>
     )

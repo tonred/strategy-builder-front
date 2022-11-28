@@ -523,7 +523,7 @@ export const StrategyAbi = {
     ],
 } as const
 
-export const StrategyBuilder = {
+export const StrategyBuilderAbi = {
     'ABI version': 2,
     version: '2.2',
     header: ['pubkey', 'time', 'expire'],
@@ -931,6 +931,25 @@ export const RootAbi = {
     ],
 } as const
 
+
+export const CallbacksAbi = {
+    'ABI version': 2,
+    version: '2.2',
+    header: ['time'],
+    functions: [
+        {
+            name: 'onStrategyCreated',
+            inputs: [
+                { name: 'strategy', type: 'address' },
+                { name: 'nonce', type: 'uint64' },
+            ],
+            outputs: [],
+        },
+    ],
+    data: [],
+    events: [],
+
+} as const
 
 export const TokenWalletAbi = {
     'ABI version': 2,

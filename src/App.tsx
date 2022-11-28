@@ -13,7 +13,7 @@ import Home from '@/pages/home'
 
 function App() {
     return (
-        <Grommet theme={theme}>
+        <Grommet full theme={theme}>
             <Header />
             <Routes>
                 <Route path="/" element={<Home />} />

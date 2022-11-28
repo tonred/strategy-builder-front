@@ -1,16 +1,22 @@
-import { Box, Button } from 'grommet'
+import {
+    Box, Button, Select, TextInput,
+} from 'grommet'
 import * as React from 'react'
 import { useEffect, useState } from 'react'
-import { Send } from 'grommet-icons'
+import { Close, Send } from 'grommet-icons'
 import { Address } from 'everscale-inpage-provider'
+import BigNumber from 'bignumber.js'
 
 import { AddressExtendedKind, AmountExtendedKind, Command } from '@/types'
 import { useStaticRpc } from '@/hooks/useStaticRpc'
-import { sliceAddress } from '@/utils'
+import { sliceAddress, zeroAddress } from '@/utils'
+import { getAddressTypeName, getAmountTypeName } from '@/misc/extended-types'
+import { AmountInput } from '@/components/common/AmountInput'
 
 type Props = {
     id: number;
     command: Command;
+    edit?: (id: number, command?: Command) => void;
 }
 const staticRpc = useStaticRpc()
 const amountRepr = (kind: AmountExtendedKind | undefined, amount: string): string => {
@@ -56,13 +62,62 @@ const recipientRepr = (
 }
 
 
-export function CommandTransferElement({ id, command }: Props): JSX.Element {
-    const [amountKind, setAmountKind] = useState<AmountExtendedKind | undefined>()
+export function CommandTransferElement({ id, command, edit }: Props): JSX.Element {
+    const [amountKind, setAmountKind] = useState<AmountExtendedKind | undefined>(
+        edit ? AmountExtendedKind.REMAINING : undefined,
+    )
     const [amount, setAmount] = useState<string>('')
-    const [recipientKind, setRecipientKind] = useState<AddressExtendedKind | undefined>()
+    const [recipientKind, setRecipientKind] = useState<AddressExtendedKind | undefined>(
+        edit ? AddressExtendedKind.SENDER : undefined,
+    )
     const [recipient, setRecipient] = useState<Address | undefined>()
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [isStrategy, setIsStrategy] = useState(false)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [nextCommand, setNextCommand] = useState(command.nextID)
+
+    useEffect(() => {
+        if (!edit) return
+        let formattedAmount
+        if (amountKind === AmountExtendedKind.PERCENT && amount) {
+            formattedAmount = new BigNumber(amount).shiftedBy(3).toString()
+        }
+        staticRpc.packIntoCell({
+            // @ts-ignore
+            data: {
+                amount: { kind: amountKind || 0, value: formattedAmount || amount || 0 },
+                flag: 128,
+                isDeployWallet: true,
+                payload: '',
+                recipient: {
+                    kind: recipientKind || 0,
+                    value: recipient || zeroAddress,
+                },
+                value: 0,
+            },
+            structure: [{
+                components: [{ name: 'kind', type: 'uint8' }, { name: 'value', type: 'uint128' }],
+                name: 'amount',
+                type: 'tuple',
+            },
+            {
+                components: [{ name: 'kind', type: 'uint8' }, { name: 'value', type: 'address' }],
+                name: 'recipient',
+                type: 'tuple',
+            },
+            { name: 'isDeployWallet', type: 'bool' },
+            { name: 'payload', type: 'cell' },
+            { name: 'value', type: 'uint128' },
+            { name: 'flag', type: 'uint8' },
+            ],
+        }).then(r => {
+            const newCommand = command
+            newCommand.nextID = nextCommand
+            newCommand.params = r.boc
+            edit(id, command)
+        })
+
+    }, [nextCommand, amountKind, amount, recipient, recipientKind, nextCommand])
+
     useEffect(() => {
         staticRpc.unpackFromCell({
             allowPartial: false,
@@ -99,8 +154,8 @@ export function CommandTransferElement({ id, command }: Props): JSX.Element {
     }, [command])
     return (
         <Box
-            width="210px"
-            height="130px"
+            width={{ min: '210px' }}
+            height={{ min: '130px' }}
             pad="xsmall"
             key={id}
             id={`command_${id}`}
@@ -124,24 +179,115 @@ export function CommandTransferElement({ id, command }: Props): JSX.Element {
                         {id}
                     </small>
                 </Box>
+                {edit && (
+                    <Box>
+                        <Button onClick={() => edit?.(id)}>
+                            <Close />
+                        </Button>
+                    </Box>
+                )}
             </Box>
-            <Box
-                justify="between"
-                align="center"
-                fill
-                pad="xsmall"
-                alignContent="center"
-            >
-                <b>
-                    {amountRepr(amountKind, amount)}
-                </b>
-                <small>
+            {edit ? (
+                <Box
+                    align="center"
+                    fill
+                    pad="xsmall"
+                    alignContent="center"
+                    gap="small"
+                >
+                    <Select
+                        placeholder="Amount Type"
+                        value={getAmountTypeName(amountKind)}
+                        options={[
+                            { kind: AmountExtendedKind.VALUE, name: 'Value' },
+                            { kind: AmountExtendedKind.PERCENT, name: 'Percent' },
+                            { kind: AmountExtendedKind.REMAINING, name: 'Remaining' },
+                        ]}
+                        valueKey={{ key: 'name', reduce: true }}
+                        onChange={({ option }) => {
+                            setAmountKind(option.kind)
+                            setAmount('')
+                        }}
+                    />
+                    {amountKind !== AmountExtendedKind.REMAINING
+                        && (
+                            <AmountInput
+                                decimals={amountKind === AmountExtendedKind.PERCENT ? 2 : 0}
+                                value={amount}
+                                onChange={v => {
+                                    if (!v) {
+                                        setAmount(v)
+                                    }
+                                    else if (amountKind !== AmountExtendedKind.PERCENT) {
+                                        setAmount(v)
+                                    }
+                                    else if (new BigNumber(v).lte(100)) {
+                                        setAmount(v)
+                                    }
+                                }}
+                                placeholder="Value"
+                            />
+                        )}
+
                     to
-                </small>
-                <small>
-                    {recipientRepr(isStrategy, recipientKind, recipient ? recipient.toString() : undefined)}
-                </small>
-            </Box>
+                    <Select
+                        placeholder="Destination Type"
+                        value={getAddressTypeName(recipientKind)}
+                        options={[
+                            { kind: AddressExtendedKind.VALUE, name: 'Value' },
+                            { kind: AddressExtendedKind.SENDER, name: 'Sender' },
+                            { kind: AddressExtendedKind.OWNER, name: 'Owner' },
+                            { kind: AddressExtendedKind.STRATEGY, name: 'Strategy' },
+                        ]}
+                        valueKey={{ key: 'name', reduce: true }}
+                        onChange={({ option }) => {
+                            setRecipientKind(option.kind)
+                            setRecipient(undefined)
+                        }}
+                    />
+                    {recipientKind === AddressExtendedKind.VALUE && (
+                        <TextInput
+                            inputMode="decimal"
+                            size="small"
+                            placeholder="Recipient Address"
+                            value={recipient ? recipient.toString() : ''}
+                            onChange={e => {
+                                if ((e.nativeEvent as InputEvent).inputType === 'deleteByCut') {
+                                    setRecipient(undefined)
+                                    return
+                                }
+                                setRecipient(new Address(e.target.value))
+                            }}
+                        />
+                    )}
+                    <small>Next command</small>
+                    <AmountInput
+                        decimals={0}
+                        value={nextCommand.toString()}
+                        onChange={e => setNextCommand(e && e !== id.toString() ? parseInt(e, 10) : 0)}
+                        placeholder="Next command"
+                    />
+                </Box>
+            ) : (
+                <Box
+                    justify="between"
+                    align="center"
+                    fill
+                    pad="xsmall"
+                    alignContent="center"
+                >
+                    <b>
+                        {amountRepr(amountKind, amount)}
+                    </b>
+                    <small>
+                        to
+                    </small>
+                    <small>
+                        {recipientRepr(isStrategy, recipientKind, recipient ? recipient.toString() : undefined)}
+                    </small>
+                </Box>
+            )}
+
         </Box>
     )
 }

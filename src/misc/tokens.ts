@@ -193,3 +193,16 @@ export function tokenByAddress(address: string): Token | undefined {
     }
     return undefined
 }
+
+export function tokenBySymbol(symbol: string): Token | undefined {
+    for (const token of tokens) {
+        if (token.symbol === symbol) {
+            return token
+        }
+    }
+    return undefined
+}
+
+export function defaultToken(): Token {
+    return tokens[0]
+}

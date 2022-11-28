@@ -50,7 +50,6 @@ export class StrategyStore {
                 }
 
             }
-            console.log(commands)
             this.setData({ commands, state: state?.state })
         }
         catch (e) {

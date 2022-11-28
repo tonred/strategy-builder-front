@@ -12,14 +12,15 @@ import { CommandFarmElement } from '@/components/common/Command/farm'
 type Props = {
     id: number;
     command: Command;
+    edit?: (id: number, command?: Command)=>void;
 }
 
-export function CommandElement({ id, command }: Props): JSX.Element {
+export function CommandElement({ id, command, edit }: Props): JSX.Element {
     switch (command.kind) {
         case CommandKind.EXIT:
-            return <CommandInputElement id={id} command={command} />
+            return <CommandInputElement id={id} command={command} edit={edit} />
         case CommandKind.TRANSFER:
-            return <CommandTransferElement id={id} command={command} />
+            return <CommandTransferElement id={id} command={command} edit={edit} />
         case CommandKind.SWAP:
             return <CommandSwapElement id={id} command={command} />
         case CommandKind.DEPOSIT:

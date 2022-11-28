@@ -9,9 +9,10 @@ type Props = {
     value?: string;
     onBlur?: React.FocusEventHandler<HTMLInputElement>;
     onChange?: (value: string) => void;
+    placeholder?: string;
 }
 
-export function AmountInput({ decimals, value, onBlur, onChange }: Props): JSX.Element {
+export function AmountInput({ decimals, value, onBlur, onChange, placeholder }: Props): JSX.Element {
     const field = useField({
         decimals,
         onBlur,
@@ -22,7 +23,7 @@ export function AmountInput({ decimals, value, onBlur, onChange }: Props): JSX.E
         <TextInput
             inputMode="decimal"
             size="small"
-            placeholder="Tokens Amount"
+            placeholder={placeholder || 'Tokens Amount'}
             value={value}
             onBlur={field.onBlur}
             onChange={field.onChange}

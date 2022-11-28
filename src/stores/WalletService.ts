@@ -1,7 +1,7 @@
 import BigNumber from 'bignumber.js'
 import {
     Address,
-    AssetType,
+    AssetType, Contract,
     ContractState,
     FullContractState,
     hasEverscaleProvider,
@@ -20,6 +20,8 @@ import { useRpc } from '@/hooks/useRpc'
 import { Token } from '@/types'
 import { BaseStore } from '@/stores/BaseStore'
 import { debug, error, log } from '@/utils'
+import {useStaticRpc} from "@/hooks/useStaticRpc";
+import {CallbacksAbi} from "@/misc/abi";
 
 
 export type Account = Permissions['accountInteraction']
@@ -62,6 +64,7 @@ const DEFAULT_WALLET_STATE: WalletState = {
 }
 
 const rpc = useRpc()
+const staticRpc = useStaticRpc()
 
 export async function connectToWallet(): Promise<Permissions['accountInteraction'] | undefined> {
     const hasProvider = await hasEverscaleProvider()
@@ -331,6 +334,16 @@ export class WalletService extends BaseStore<WalletData, WalletState> {
      */
     public get contract(): WalletData['contract'] {
         return this.data.contract
+    }
+
+    /**
+     * Returns computed DEX Callbacks ABI Contract for current by current wallet address.
+     * @returns {Contract<typeof CallbacksAbi> | undefined}
+     */
+    public get walletContractCallbacks(): Contract<typeof CallbacksAbi> | undefined {
+        return this.account?.address !== undefined
+            ? new staticRpc.Contract(CallbacksAbi, this.account.address)
+            : undefined
     }
 
     /**
