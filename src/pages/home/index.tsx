@@ -10,7 +10,7 @@ export default function Page(): JSX.Element {
             <Button href="/strategy/0:2ddef82f0bd07ea5013c35f3fde096e3580cba2d9c157d1d241e5725345e654b">
                 Swap WEVER to USDT
             </Button>
-            <Button href="/strategy/0:35b5f401b1923644c93f5fbad2ee902f090febe794cd8cf1067f2794f9bcf362">
+            <Button href="/strategy/0:0f73fe08390eae7071dc091bdbafb7b456e347688e1ca64d94c8503f77199605">
                 Swap WEVER to 3 stables
             </Button>
             <Button href="/strategy/0:11c828b1c4ff5dd05e352ec1596c8b4c04ebdcfeb9aefa25043f9a1bbf2a7022">
